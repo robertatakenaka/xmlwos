@@ -1,0 +1,159 @@
+<article dtd-version="3.0"
+   xmlns:xlink="http://www.w3.org/1999/xlink" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   {% set original_language = data['article']['v40'][0]['_'] %}
+   <front>
+        <journal-meta>
+            <journal-id journal-id-type="publisher">{{ data['title']['v930'][0]['_'].lower() }}</journal-id>
+            <journal-title-group>
+                {% if 'v100' in data['title'] %}
+                <journal-title>{{ data['title']['v100'][0]['_'] }}</journal-title>
+                {% end %}
+                {% if 'v110' in data['title'] %}
+                <journal-subtitle>{{ data['title']['v110'][0]['_'] }}</journal-subtitle>
+                {% end %}
+                {% if 'v150' in data['title'] %}
+                <abbrev-journal-title>{{ data['title']['v150'][0]['_'] }}</abbrev-journal-title>
+                {% end %}
+            </journal-title-group>
+            <issn>{{ data['title']['v400'][0]['_'].upper() }}</issn>
+            {% if 'v480' in data['title'] %}
+            <publisher>
+                <publisher-name>{{ data['title']['v480'][0]['_'] }}</publisher-name>
+                {% if 'v490' in data['title'] %}
+                    <publisher-loc>{{ data['title']['v490'][0]['_'] }}</publisher-loc>
+                {% end %}
+            </publisher>
+            {% end %}
+        </journal-meta>
+        <article-meta>
+            <article-id pub-id-type="publisher-id">{{ data['article']['v880'][0]['_'].upper() }}</article-id>
+            {% if 'v237' in data['article'] %}
+                <article-id pub-id-type="doi">{{ data['article']['v237'][0]['_'] }}</article-id>
+            {% else %}
+                {% if doi_prefix and data['title']['v690'][0]['_'] in doi_prefix %}
+                    {% if 'v881' in data['article'] %}
+                        <article-id pub-id-type="doi">{{ doi_prefix[data['title']['v690'][0]['_']] }}/{{ data['article']['v881'][0]['_'] }}</article-id>
+                    {% else %}
+                        <article-id pub-id-type="doi">{{ doi_prefix[data['title']['v690'][0]['_']] }}/{{ data['article']['v880'][0]['_'] }}</article-id>
+                    {% end %}
+                {% end %}
+            {% end %}
+            <title-group>
+                {% for title in  data['article']['v12'] %}
+                    {% if title['l'] == original_language %}
+                        <article-title xml:lang="{{ title['l'] }}">{{ title['_'] }}</article-title>
+                    {% else %}
+                        <trans-title-group xml:lang="{{ title['l'] }}">
+                            <trans-title>{{ title['_'] }}</trans-title>
+                        </trans-title-group>
+                    {% end %}
+                {% end %}
+            </title-group>
+            {% if 'v10' in data['article'] or 'v11' in data['article'] %}
+                <contrib-group>
+                    {% if 'v10' in data['article'] %}
+                        {% for author in data['article']['v10'] %}
+                            <contrib contrib-type="author">
+                                <name>
+                                    {% if 's' in author %}
+                                        <surname>{{ author['s'] }}</surname>
+                                    {% end %}
+                                    {% if 'n' in author %}
+                                        <given-names>{{ author['n'] }}</given-names>
+                                    {% end %}
+                                </name>
+                                {% if 'r' in author %}
+                                    <role>{{ author['r'] }}</role>
+                                {% end %}
+                                {% if '1' in author %}
+                                    {% for affid in author['1'].split(' ') %}
+                                        <xref ref-type="aff" rid="{{ affid }}" />
+                                    {% end %}
+                                {% end %}
+                            </contrib>
+                        {% end %}
+                    {% end %}
+                </contrib-group>
+            {% end %}
+            {% if 'v70' in data['article'] %}
+                {% for affiliation in data['article']['v70'] %}
+                    <aff id="{{ affiliation['i'] }}">
+                        {% if 'c' in affiliation %}
+                            <addr-line>{{ affiliation['c'] }}</addr-line>
+                        {% end %}
+                        {% if '_' in affiliation %}
+                            <institution>{{ affiliation['_'] }}</institution>
+                        {% end %}
+                        {% if 'p' in affiliation %}
+                            <country>{{ affiliation['p'] }}</country>
+                        {% end %}
+                        {% if 'e' in affiliation %}
+                            <email>{{ affiliation['e'] }}</email>
+                        {% end %}
+
+                    </aff>
+                {% end %}
+            {% end %}
+            <pub-date>
+                {% if data['article']['v65'][0]['_'][6:8] != '00' %}
+                    <day>{{ data['article']['v65'][0]['_'][6:8] }}</day>
+                {% end %}
+                {% if data['article']['v65'][0]['_'][4:6] != '00' %}
+                    <month>{{ data['article']['v65'][0]['_'][4:6] }}</month>
+                {% end %}
+                <year>{{ data['article']['v65'][0]['_'][0:4] }}</year>
+            </pub-date>
+            {%if data['article']['v31'][0]['_'] %}
+                <volume>{{ data['article']['v31'][0]['_'] }}</volume>
+            {% end %}
+            {%if data['article']['v32'][0]['_'] %}
+                <issue>{{ data['article']['v32'][0]['_'] }}</issue>
+            {% end %}
+            {%if 'v131' in data['article'] or 'v132' in data['article'] %}
+            <supplement>
+                Suppl.
+                {%if 'v131' in data['article'] %}
+                    v. {{ data['article']['v131'][0]['_'] }}
+                {% end %}
+                {%if 'v132' in data['article'] %}
+                    n. {{ data['article']['v132'][0]['_'] }}
+                {% end %}        
+            </supplement>
+            {% end %}
+            {% if 'v14' in data['article'] %}
+                {% if 'f' in data['article']['v14'][0] %}
+                    <fpage>{{ data['article']['v14'][0]['f'] }}</fpage>
+                {% end %}
+                {% if 'l' in data['article']['v14'][0] %}
+                    <lpage>{{ data['article']['v14'][0]['l'] }}</lpage>
+                {% end %}
+            {% end %}
+            {% if 'v690' in data['title'] %}
+            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_arttext&amp;pid={{ data['article']['v880'][0]['_'] }}&amp;lng=en&amp;tlng=en" content-type="full_text_page">Full Text</self-uri>
+            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_issuetoc&amp;pid={{ data['article']['v880'][0]['_'][0:18] }}&amp;lng=en&amp;tlng=en" content-type="issue_page">Issue Page</self-uri>
+            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_serial&amp;pid={{ data['article']['v880'][0]['_'][1:10] }}&amp;lng=en&amp;tlng=en" content-type="journal_page">Journal Page</self-uri>
+            {% end %}
+            {% if 'v83' in data['article'] %}
+                {% for abstract in  data['article']['v83'] %}
+                    {% if abstract['l'] == original_language %}
+                        <abstract xml:lang="{{ abstract['l'] }}">{{ abstract['a'] }}</abstract>
+                    {% else %}
+                        <trans-abstract xml:lang="{{ abstract['l'] }}">{{ abstract['a'] }}</trans-abstract>
+                    {% end %}
+                {% end %}
+            {% end %}
+            {% if 'v85' in data['article'] %}
+                <kwd-group>
+                    {% for keyword in data['article']['v85'] %}
+                        {% if 'k' in keyword %}
+                        <kwd xml:lang="{{ keyword['l'] }}">{{ keyword['k'] }}</kwd>
+                        {% end %}
+                    {% end %}
+                </kwd-group>
+            {% end %}
+        </article-meta>
+   </front>
+   <back>
+   </back>
+</article>

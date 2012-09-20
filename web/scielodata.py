@@ -1,8 +1,5 @@
-import urllib
-import urllib2
 import json
-from datetime import date
-
+import os
 from tornado import (
     httpserver,
     httpclient,
@@ -24,12 +21,14 @@ define("mongodb_host", default='localhost', help="run MongoDB on the given hostn
 define("mongodb_database", default='scielo_network', help="Record accesses on the given database")
 define("mongodb_max_connections", default=200, help="run MongoDB with the given max connections", type=int)
 define("mongodb_max_cached", default=20, help="run MongoDB with the given max cached", type=int)
+define("doi_prefix", default=None, help="indicates a txt file with each collection DOI prefix.", type=str)
+
 
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/api/v1/article", ArticleHandler),
-            (r"/api/v1/is_loaded", IsLoadedHandler) , 
+            (r"/api/v1/is_loaded", IsLoadedHandler),
        ]
 
         self.db = asyncmongo.Client(
@@ -40,9 +39,20 @@ class Application(tornado.web.Application):
             maxconnections=options.mongodb_max_connections,
             dbname=options.mongodb_database
         )
+        self.doi_prefix = {}
+        if options.doi_prefix:
+            with open(options.doi_prefix) as f:
+                for line in f:
+                    prefix = line.split("|")
+                    self.doi_prefix[prefix[0]] = prefix[1]
+
+        settings = dict(
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            )
 
         # Local is the default the default way that ratchet works.
-        tornado.web.Application.__init__(self, handlers)
+        tornado.web.Application.__init__(self, handlers, **settings)
+
 
 class IsLoadedHandler(tornado.web.RequestHandler):
 
@@ -70,6 +80,7 @@ class IsLoadedHandler(tornado.web.RequestHandler):
         code = self.get_argument('code')
         self.db.articles.find({"code": code}, limit=1, callback=self._on_get_response)
 
+
 class ArticleHandler(tornado.web.RequestHandler):
 
     def _remove_callback(self, response, error):
@@ -80,9 +91,10 @@ class ArticleHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(500)
 
         if len(response) > 0:
-            self.write(str(response[0]))
+            self.render('scielo.xml')
+            #self.write(str(response[0]))
 
-        self.finish()
+        #self.finish()
 
     @property
     def db(self):
@@ -113,8 +125,21 @@ class ArticleHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
+        def _on_response(response, error):
+            if error:
+                raise tornado.web.HTTPError(500)
+
+            if len(response) > 0:
+                if format == 'xml':
+                    self.set_header('Content-Type', 'application/xml')
+                    self.render('scielo.xml', code=code, data=response[0], doi_prefix=self.application.doi_prefix)
+                else:
+                    self.write(str(response[0]))
+                    self.finish()
+
         code = self.get_argument('code')
-        self.db.articles.find({"code": code}, {"_id": 0}, limit=1, callback=self._on_get_response)
+        format = self.get_argument('format')
+        self.db.articles.find({"code": code}, {"_id": 0}, limit=1, callback=_on_response)
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
