@@ -137,9 +137,9 @@
             {% if 'v83' in data['article'] %}
                 {% for abstract in  data['article']['v83'] %}
                     {% if abstract['l'] == original_language %}
-                        <abstract xml:lang="{{ abstract['l'] }}">{{ abstract['a'] }}</abstract>
+                        <abstract xml:lang="{{ abstract['l'] }}"><p>{{ abstract['a'] }}</p></abstract>
                     {% else %}
-                        <trans-abstract xml:lang="{{ abstract['l'] }}">{{ abstract['a'] }}</trans-abstract>
+                        <trans-abstract xml:lang="{{ abstract['l'] }}"><p>{{ abstract['a'] }}</p></trans-abstract>
                     {% end %}
                 {% end %}
             {% end %}
@@ -147,13 +147,18 @@
                 <kwd-group>
                     {% for keyword in data['article']['v85'] %}
                         {% if 'k' in keyword %}
-                        <kwd xml:lang="{{ keyword['l'] }}">{{ keyword['k'] }}</kwd>
+                        <kwd>{{ keyword['k'] }}</kwd>
                         {% end %}
                     {% end %}
                 </kwd-group>
             {% end %}
         </article-meta>
    </front>
-   <back>
-   </back>
+   {% if 'citations' in data %}
+       <back>
+            {% for citation in data['citations'] %}
+                {{ citation['v12'][0]['_'] }}
+            {% end %}
+       </back>
+   {% end %}
 </article>
