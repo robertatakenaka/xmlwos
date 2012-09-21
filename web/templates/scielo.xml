@@ -1,164 +1,231 @@
 <article dtd-version="3.0"
    xmlns:xlink="http://www.w3.org/1999/xlink" 
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-   {% set original_language = data['article']['v40'][0]['_'] %}
+   {% set original_language = article['original_language'] %}
    <front>
         <journal-meta>
-            <journal-id journal-id-type="publisher">{{ data['title']['v930'][0]['_'].lower() }}</journal-id>
+            <journal-id journal-id-type="publisher">{{ article['journal-id'] }}</journal-id>
             <journal-title-group>
-                {% if 'v100' in data['title'] %}
-                <journal-title>{{ data['title']['v100'][0]['_'] }}</journal-title>
+                {% if 'journal-title' in article %}
+                <journal-title>{{ article['journal-title'] }}</journal-title>
                 {% end %}
-                {% if 'v110' in data['title'] %}
-                <journal-subtitle>{{ data['title']['v110'][0]['_'] }}</journal-subtitle>
+                {% if 'journal-subtitle' in article %}
+                <journal-subtitle>{{ article['journal-subtitle'] }}</journal-subtitle>
                 {% end %}
-                {% if 'v150' in data['title'] %}
-                <abbrev-journal-title>{{ data['title']['v150'][0]['_'] }}</abbrev-journal-title>
+                {% if 'abbrev-journal-title' in article %}
+                <abbrev-journal-title>{{ article['abbrev-journal-title'] }}</abbrev-journal-title>
                 {% end %}
             </journal-title-group>
-            <issn>{{ data['title']['v400'][0]['_'].upper() }}</issn>
-            {% if 'v480' in data['title'] %}
+            <issn>{{ article['issn'] }}</issn>
+            {% if 'publisher-name' in article %}
             <publisher>
-                <publisher-name>{{ data['title']['v480'][0]['_'] }}</publisher-name>
-                {% if 'v490' in data['title'] %}
-                    <publisher-loc>{{ data['title']['v490'][0]['_'] }}</publisher-loc>
+                <publisher-name>{{ article['publisher-name'] }}</publisher-name>
+                {% if 'publisher-loc' in article %}
+                    <publisher-loc>{{ article['publisher-loc'] }}</publisher-loc>
                 {% end %}
             </publisher>
             {% end %}
         </journal-meta>
         <article-meta>
-            <article-id pub-id-type="publisher-id">{{ data['article']['v880'][0]['_'].upper() }}</article-id>
-            {% if 'v237' in data['article'] %}
-                <article-id pub-id-type="doi">{{ data['article']['v237'][0]['_'] }}</article-id>
-            {% else %}
-                {% if doi_prefix and data['title']['v690'][0]['_'] in doi_prefix %}
-                    {% if 'v881' in data['article'] %}
-                        <article-id pub-id-type="doi">{{ doi_prefix[data['title']['v690'][0]['_']] }}/{{ data['article']['v881'][0]['_'] }}</article-id>
-                    {% else %}
-                        <article-id pub-id-type="doi">{{ doi_prefix[data['title']['v690'][0]['_']] }}/{{ data['article']['v880'][0]['_'] }}</article-id>
-                    {% end %}
-                {% end %}
+            <article-id pub-id-type="publisher-id">{{ article['article-id'] }}</article-id>
+            {% if 'article-id-doi' in article %}
+                <article-id pub-id-type="doi">{{ article['article-id-doi'] }}</article-id>
             {% end %}
             <title-group>
-                {% for title in  data['article']['v12'] %}
-                    {% if title['l'] == original_language %}
-                        <article-title xml:lang="{{ title['l'] }}">{{ title['_'] }}</article-title>
-                    {% else %}
-                        <trans-title-group xml:lang="{{ title['l'] }}">
-                            <trans-title>{{ title['_'] }}</trans-title>
-                        </trans-title-group>
-                    {% end %}
+                {% for lang, title in article['group-title']['article-title'].items() %}
+                    <article-title xml:lang="{{ lang }}">{{ title }}</article-title>
+                {% end %}
+                {% for lang, title in  article['group-title']['trans-title'].items() %}
+                    <trans-title-group xml:lang="{{ lang }}">
+                        <trans-title>{{ title }}</trans-title>
+                    </trans-title-group>
                 {% end %}
             </title-group>
-            {% if 'v10' in data['article'] or 'v11' in data['article'] %}
-                <contrib-group>
-                    {% if 'v10' in data['article'] %}
-                        {% for author in data['article']['v10'] %}
-                            <contrib contrib-type="author">
-                                <name>
-                                    {% if 's' in author %}
-                                        <surname>{{ author['s'] }}</surname>
-                                    {% end %}
-                                    {% if 'n' in author %}
-                                        <given-names>{{ author['n'] }}</given-names>
-                                    {% end %}
-                                </name>
-                                {% if 'r' in author %}
-                                    <role>{{ author['r'] }}</role>
-                                {% end %}
-                                {% if '1' in author %}
-                                    {% for affid in author['1'].split(' ') %}
-                                        <xref ref-type="aff" rid="{{ affid }}" />
-                                    {% end %}
-                                {% end %}
-                            </contrib>
+            {% if 'contrib-group' in article %}
+            <contrib-group>
+                {% for author in article['contrib-group'] %}
+                    <contrib contrib-type="author">
+                        <name>
+                            {% if 'surname' in author %}
+                                <surname>{{ author['surname'] }}</surname>
+                            {% end %}
+                            {% if 'given-names' in author %}
+                                <given-names>{{ author['given-names'] }}</given-names>
+                            {% end %}
+                        </name>
+                        {% if 'role' in author %}
+                            <role>{{ author['role'] }}</role>
                         {% end %}
-                    {% end %}
-                </contrib-group>
+                        {% if 'xref' in author %}
+                            {% for affid in author['xref'].split(' ') %}
+                                <xref ref-type="aff" rid="{{ affid }}" />
+                            {% end %}
+                        {% end %}
+                    </contrib>
+                {% end %}
+            </contrib-group>
             {% end %}
-            {% if 'v70' in data['article'] %}
-                {% for affiliation in data['article']['v70'] %}
-                    <aff id="{{ affiliation['i'] }}">
-                        {% if 'c' in affiliation %}
-                            <addr-line>{{ affiliation['c'] }}</addr-line>
+            {% if 'aff-group' in article %}
+                {% for affiliation in article['aff-group'] %}
+                    <aff id="{{ affiliation['index'] }}">
+                        {% if 'addr-line' in affiliation %}
+                            <addr-line>{{ affiliation['addr-line'] }}</addr-line>
                         {% end %}
-                        {% if '_' in affiliation %}
-                            <institution>{{ affiliation['_'] }}</institution>
+                        {% if 'institution' in affiliation %}
+                            <institution>{{ affiliation['institution'] }}</institution>
                         {% end %}
-                        {% if 'p' in affiliation %}
-                            <country>{{ affiliation['p'] }}</country>
+                        {% if 'country' in affiliation %}
+                            <country>{{ affiliation['country'] }}</country>
                         {% end %}
-                        {% if 'e' in affiliation %}
-                            <email>{{ affiliation['e'] }}</email>
+                        {% if 'email' in affiliation %}
+                            <email>{{ affiliation['email'] }}</email>
                         {% end %}
-
                     </aff>
                 {% end %}
             {% end %}
             <pub-date>
-                {% if data['article']['v65'][0]['_'][6:8] != '00' %}
-                    <day>{{ data['article']['v65'][0]['_'][6:8] }}</day>
+                {% if 'day' in article['pub-date'] %}
+                    <day>{{ article['pub-date']['day'] }}</day>
                 {% end %}
-                {% if data['article']['v65'][0]['_'][4:6] != '00' %}
-                    <month>{{ data['article']['v65'][0]['_'][4:6] }}</month>
+                {% if 'month' in article['pub-date'] %}
+                    <month>{{ article['pub-date']['month'] }}</month>
                 {% end %}
-                <year>{{ data['article']['v65'][0]['_'][0:4] }}</year>
+                <year>{{ article['pub-date']['year'] }}</year>
             </pub-date>
-            {%if data['article']['v31'][0]['_'] %}
-                <volume>{{ data['article']['v31'][0]['_'] }}</volume>
+            {%if 'volume' in article %}
+                <volume>{{ article['volume'] }}</volume>
             {% end %}
-            {%if data['article']['v32'][0]['_'] %}
-                <issue>{{ data['article']['v32'][0]['_'] }}</issue>
+            {%if 'issue' in article %}
+                <issue>{{ article['issue'] }}</issue>
             {% end %}
-            {%if 'v131' in data['article'] or 'v132' in data['article'] %}
-            <supplement>
-                Suppl.
-                {%if 'v131' in data['article'] %}
-                    v. {{ data['article']['v131'][0]['_'] }}
+            {%if 'supplement' in article %}
+            <supplement>{{ article['supplement'] }}</supplement>
+            {% end %}
+            {% if 'fpage' in article %}
+                <fpage>{{ article['fpage'] }}</fpage>
+            {% end %}
+            {% if 'lpage' in article %}
+                <lpage>{{ article['lpage'] }}</lpage>
+            {% end %}
+            {% if 'self-uri' in article %}
+            <self-uri xlink:href="{{ article['self-uri']['full-text-page'] }}" content-type="full_text_page">Full Text</self-uri>
+            <self-uri xlink:href="{{ article['self-uri']['issue-page'] }}" content-type="issue_page">Issue Page</self-uri>
+            <self-uri xlink:href="{{ article['self-uri']['journal-page'] }}" content-type="journal_page">Journal Page</self-uri>
+            {% end %}
+            {% if 'group-abstract' in article %}
+                {% for lang, abstract in article['group-abstract']['abstract'].items() %}
+                    <abstract xml:lang="{{ lang }}"><p>{{ abstract }}</p></abstract>
                 {% end %}
-                {%if 'v132' in data['article'] %}
-                    n. {{ data['article']['v132'][0]['_'] }}
-                {% end %}        
-            </supplement>
-            {% end %}
-            {% if 'v14' in data['article'] %}
-                {% if 'f' in data['article']['v14'][0] %}
-                    <fpage>{{ data['article']['v14'][0]['f'] }}</fpage>
-                {% end %}
-                {% if 'l' in data['article']['v14'][0] %}
-                    <lpage>{{ data['article']['v14'][0]['l'] }}</lpage>
-                {% end %}
-            {% end %}
-            {% if 'v690' in data['title'] %}
-            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_arttext&amp;pid={{ data['article']['v880'][0]['_'] }}&amp;lng=en&amp;tlng=en" content-type="full_text_page">Full Text</self-uri>
-            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_issuetoc&amp;pid={{ data['article']['v880'][0]['_'][0:18] }}&amp;lng=en&amp;tlng=en" content-type="issue_page">Issue Page</self-uri>
-            <self-uri xlink:href="http://{{ data['title']['v690'][0]['_'] }}/scielo.php?script=sci_serial&amp;pid={{ data['article']['v880'][0]['_'][1:10] }}&amp;lng=en&amp;tlng=en" content-type="journal_page">Journal Page</self-uri>
-            {% end %}
-            {% if 'v83' in data['article'] %}
-                {% for abstract in  data['article']['v83'] %}
-                    {% if abstract['l'] == original_language %}
-                        <abstract xml:lang="{{ abstract['l'] }}"><p>{{ abstract['a'] }}</p></abstract>
-                    {% else %}
-                        <trans-abstract xml:lang="{{ abstract['l'] }}"><p>{{ abstract['a'] }}</p></trans-abstract>
-                    {% end %}
+                {% for lang, abstract in  article['group-abstract']['trans-abstract'].items() %}
+                    <trans-abstract xml:lang="{{ lang }}"><p>{{ abstract }}</p></trans-abstract>
                 {% end %}
             {% end %}
-            {% if 'v85' in data['article'] %}
-                <kwd-group>
-                    {% for keyword in data['article']['v85'] %}
-                        {% if 'k' in keyword %}
-                        <kwd>{{ keyword['k'] }}</kwd>
+            {% if 'kwd-group' in article %}
+                {% for group, keywords in article['kwd-group'].items() %}
+                    <kwd-group xml:lang="{{ group }}" kwd-group-type="author-generated">
+                        {% for keyword in keywords %}
+                            <kwd>{{ keyword }}</kwd>
                         {% end %}
-                    {% end %}
-                </kwd-group>
+                    </kwd-group>
+                {% end %}
             {% end %}
         </article-meta>
    </front>
-   {% if 'citations' in data %}
+   {% if citations %}
        <back>
-            {% for citation in data['citations'] %}
-                {{ citation['v12'][0]['_'] }}
-            {% end %}
+            <ref-list>
+                {% for citation in citations %}
+                    <ref id="B{{ citation['order'] }}">
+                        <element-citation publication-type="{{ citation['publication-type'] }}">
+                            {% if 'article-title' in citation %}
+                                <article-title>{{ citation['article-title'] }}</article-title>
+                            {% end %}
+                            {% if 'chapter-title' in citation %}
+                                <chapter-title>{{ citation['chapter-title'] }}</chapter-title>
+                            {% end %}
+                            {% if 'conf-date' in citation %}
+                                <conf-date>{{ citation['conf-date'] }}</conf-date>
+                            {% end %}
+                            {% if 'conf-loc' in citation %}
+                                <conf-loc>{{ citation['conf-loc'] }}</conf-loc>
+                            {% end %}
+                            {% if 'conf-name' in citation %}
+                                <conf-name>{{ citation['conf-name'] }}</conf-name>
+                            {% end %}
+                            {% if 'conf-sponsor' in citation %}
+                                <conf-sponsor>{{ citation['conf-sponsor'] }}</conf-sponsor>
+                            {% end %}
+                            {% if 'date' in citation %}
+                                <date>
+                                    {% if 'day' in citation['date'] %}
+                                    <day>{{ citation['date']['day'] }}</day>
+                                    {% end %}
+                                    {% if 'month' in citation['date'] %}
+                                    <month>{{ citation['date']['month'] }}</month>
+                                    {% end %}
+                                    <year>{{ citation['date']['year'] }}</year>
+                                </date>
+                            {% end %}
+                            {% if 'edition' in citation %}
+                                <edition>{{ citation['edition'] }}</edition>
+                            {% end %}
+                            {% if 'uri' in citation %}
+                                <uri>{{ citation['uri'] }}</uri>
+                            {% end %}
+                            {% if 'fpage' in citation %}
+                                <fpage>{{ citation['fpage'] }}</fpage>
+                            {% end %}
+                            {% for institution in citation['institutions'] %}
+                                <institution>{{ institution }}</institution>
+                            {% end %}
+                            {% if 'isbn' in citation %}
+                                <isbn>{{ citation['isbn'] }}</isbn>
+                            {% end %}
+                            {% if 'issn' in citation %}
+                                <issn>{{ citation['issn'] }}</issn>
+                            {% end %}
+                            {% if 'issue' in citation %}
+                                <issue>{{ citation['issue'] }}</issue>
+                            {% end %}
+                            {% if 'volume' in citation %}
+                                <volume>{{ citation['volume'] }}</volume>
+                            {% end %}
+                            {% if 'object-id' in citation %}
+                                <object-id>{{ citation['object-id'] }}</object-id>
+                            {% end %}
+                            {% if 'issue-part' in citation %}
+                                <issue-part>{{ citation['issue-part'] }}</issue-part>
+                            {% end %}
+                            {% if 'issue-title' in citation %}
+                                <issue-title>{{ citation['issue-title'] }}</issue-title>
+                            {% end %}
+                            {% if 'lpage' in citation %}
+                                <lpage>{{ citation['lpage'] }}</lpage>
+                            {% end %}
+                            {% if 'person-group' in citation %}
+                                <person-group>
+                                    {% for author in citation['person-group'] %}
+                                        <name>
+                                            {% if 'surname' in author %}
+                                                <surname>{{ author['surname'] }}</surname>
+                                            {% end %}
+                                            {% if 'given-names' in author %}
+                                                <given-names>{{ author['given-names'] }}</given-names>
+                                            {% end %}
+                                        </name>
+                                    {% end %}
+                                </person-group>
+                            {% end %}
+                            {% if 'series' in citation %}
+                                <series>{{ citation['series'] }}</series>
+                            {% end %}
+                            {% if 'publisher-loc' in citation %}
+                                <publisher-loc>{{ citation['publisher-loc'] }}</publisher-loc>
+                            {% end %}
+                        </element-citation>
+                    </ref>
+                {% end %}
+            </ref-list>
        </back>
    {% end %}
 </article>

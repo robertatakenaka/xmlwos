@@ -14,6 +14,7 @@ from tornado.options import (
     )
 import tornado
 import asyncmongo
+from shiningdata import ShineData
 
 define("port", default=8888, help="run on the given port", type=int)
 define("mongodb_port", default=27017, help="run MongoDB on the given port", type=int)
@@ -131,8 +132,14 @@ class ArticleHandler(tornado.web.RequestHandler):
 
             if len(response) > 0:
                 if format == 'xml':
+                    shined_data = ShineData(response[0], doi_prefix=self.application.doi_prefix)
+
                     self.set_header('Content-Type', 'application/xml')
-                    self.render('scielo.xml', code=code, data=response[0], doi_prefix=self.application.doi_prefix)
+                    self.render('scielo.xml',
+                        code=code,
+                        article=shined_data.article,
+                        citations=shined_data.citations
+                    )
                 else:
                     self.write(str(response[0]))
                     self.finish()
