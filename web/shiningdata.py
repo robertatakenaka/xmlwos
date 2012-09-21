@@ -183,17 +183,17 @@ class ShineData(object):
 
             # Conference date
             if 'v54' in data:
-                citation['conf-date'] = citation['v54'][0]['_']
+                citation['conf-date'] = data['v54'][0]['_']
 
             # Coference loc
             if 'v56' in data or 'v57' in data:
                 loc = []
                 if 'v56' in data:
-                    loc.append(citation['v56'][0]['_'])
+                    loc.append(data['v56'][0]['_'])
                     if 'l' in data['v56'][0]:
-                        loc.append(citation['v56'][0]['l'])
+                        loc.append(data['v56'][0]['l'])
                 if 'v57' in data:
-                    loc.append(citation['v57'][0]['_'])
+                    loc.append(data['v57'][0]['_'])
 
                 citation['conf-loc'] = ", ".join(loc)
 
