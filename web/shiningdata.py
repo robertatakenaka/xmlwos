@@ -175,7 +175,7 @@ class ShineData(object):
 
             # Citation title
             if citation['publication-type'] == 'book':
-                citation['article-title'] = data['v18'][0]['_']
+                citation['source'] = data['v18'][0]['_']
                 if 'v12' in data:
                     citation['chapter-title'] = data['v12'][0]['_']
             elif citation['publication-type'] == 'article':
