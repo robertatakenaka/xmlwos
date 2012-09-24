@@ -173,6 +173,10 @@ class ShineData(object):
             elif 'v12' in data:
                 citation['publication-type'] = 'article'
 
+            # Journal Title instead of Book title in source element.
+            if 'v30' in data:
+                citation['source'] = data['v30'][0]['_']
+
             # Citation title
             if citation['publication-type'] == 'book':
                 citation['source'] = data['v18'][0]['_']
