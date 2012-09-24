@@ -140,8 +140,8 @@
                             {% if 'article-title' in citation %}
                                 <article-title>{{ citation['article-title'] }}</article-title>
                             {% end %}
-                            {% if 'article-title' in citation %}
-                                <source>{{ citation['article-title'] }}</source>
+                            {% if 'source' in citation %}
+                                <source>{{ citation['source'] }}</source>
                             {% end %}
                             {% if 'chapter-title' in citation %}
                                 <chapter-title>{{ citation['chapter-title'] }}</chapter-title>
