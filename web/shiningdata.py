@@ -1,22 +1,51 @@
 class ShineData(object):
 
-    def __init__(self, response, doi_prefix):
+    def __init__(self, response, doi_prefix, article_types, journal_subjects, scielonet):
         self.data = response
+        self.article_types = article_types
+        self.journal_subjects = journal_subjects
+        self.scielonet = scielonet
         if doi_prefix:
             self.doi_prefix = doi_prefix
+        
+
 
     @property
     def article(self):
         article = {}
+              
+        article['teste'] = ''
+        issn = self.data['title']['v400'][0]['_'].upper()
+        if issn in self.journal_subjects.keys():
+            article['journal-subjects'] = self.journal_subjects[issn]
+        
+        if 'v71' in self.data['article']:
+            article_type = self.data['article']['v71'][0]['_']
+        else:
+            article_type = 'nd'
+        if article_type in self.article_types.keys():
+            article['article_type'] = self.article_types[article_type]
+        else:
+            article['article_type'] = self.article_types['nd']
+
         article['original_language'] = self.data['article']['v40'][0]['_']
         article['journal-id'] = self.data['title']['v930'][0]['_'].lower()
-        article['issn'] = self.data['title']['v400'][0]['_'].upper()
+        article['issn'] = issn
         article['article-id'] = self.data['article']['v880'][0]['_'].upper()
 
         if 'v690' in self.data['title']:
             article['scielo-url'] = self.data['title']['v690'][0]['_']
-
+        if 'v691' in self.data['title']:
+            article['scielonetid'] = self.data['title']['v691'][0]['_']
+            if not 'scielo-url' in article:
+                k = 'x'
+                if '1' in article['scielonetid']:
+                    k = str(article['scielonetid'].find('1')+1)
+                if k in self.scielonet.keys():
+                    article['scielo-url'] = self.scielonet[k]
+            #article['teste'] += article['scielonetid'] + '\n' + ', '.join(self.scielonet.keys()) + '\n' + ','.join(self.scielonet.values())
         # Defining the DOI number
+        get_doi_from_xml = False
         if 'v237' in self.data['article']:
             article['article-id-doi'] = self.data['article']['v237'][0]['_']
         else:
@@ -31,7 +60,28 @@ class ShineData(object):
                         self.doi_prefix[article['article-id']],
                         self.data['article']['v880'][0]['_'].upper()
                     )
+            else:
+                if 'scielo-url' in article and 'article-id' in article: 
+                    doi_url = "http://{0}/scielo.php?script=sci_isoref&pid={1}&debug=xml".format(article['scielo-url'], article['article-id'])
+                    print(doi_url)
+                    doi_xml = ''
+                    try:
+                        import urllib2
+                        doi_xml = urllib2.urlopen(urllib2.Request(doi_url)).read()
+                    except:
+                        try:
+                            import urllib.request 
+                            doi_xml = urllib.request.urlopen(doi_url).read()
+                        except:
+                            doi_xml = ''
+                    if len(doi_xml)>0:            
+                        if 'DOI="' in doi_xml:
+                            doi_xml = doi_xml[doi_xml.find('DOI="')+len('DOI="'):]
+                            article['article-id-doi'] = doi_xml[0:doi_xml.find('"')]
+                            
 
+
+      
         if 'v100' in self.data['title']:
             article['journal-title'] = self.data['title']['v100'][0]['_']
 
@@ -155,7 +205,8 @@ class ShineData(object):
                 if 'k' in keyword:
                     group = article['kwd-group'].setdefault(keyword['l'], [])
                     group.append(keyword['k'])
-
+        
+            
         return article
 
     @property
@@ -172,7 +223,12 @@ class ShineData(object):
                 citation['publication-type'] = 'book'
             elif 'v12' in data:
                 citation['publication-type'] = 'article'
-
+            elif 'v53' in data:
+                citation['publication-type'] = 'conference'
+            elif 'v45' in data:
+                citation['publication-type'] = 'thesis'
+            else:
+                citation['publication-type'] = 'nd'
             # Journal Title instead of Book title in source element.
             if 'v30' in data:
                 citation['source'] = data['v30'][0]['_']
@@ -301,6 +357,8 @@ class ShineData(object):
 
             if 'v25' in data:
                 citation['series'] = data['v25'][0]['_']
+            if 'v62' in data:
+                citation['publisher-name'] = data['v62'][0]['_']
 
             # Publisher loc
             if 'v66' in data or 'v67' in data:

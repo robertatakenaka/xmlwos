@@ -1,0 +1,22 @@
+1|www.scielo.br|SciELO Brasil
+2|www.scielo.cl|SciELO Chile
+3|www.scielosp.org|SciELO Salud Pública
+6|scielo.sld.cu|SciELO Cuba
+7|www.scielo.org.co|SciELO Colombia
+8|www.scielo.sa.cr|SciELO Costa Rica
+9|www.scielo.edu.uy|SciELO Uruguay
+10|www.scielo.org.ar|SciELO Argentina
+11||SciELO Biodiversidade
+12|www.scielo.org.bo|SciELO Bolivia
+13|scielo.isciii.es|SciELO España
+14||SciELO Jamaica
+15|www.scielo.org.mx|SciELO México
+16|www.scielo.org.pe|SciELO Perú
+17|www.scielo.gpeari.mctes.pt|SciELO Portugal
+18|www.scielo.org.ve|SciELO Venezuela
+19||SciELO Adolec
+20|socialsciences.scielo.org|SciELO Social Sciences
+21|scielo.iics.una.py|SciELO Paraguay
+22||SciELO Ecuador
+23||SciELO Caribbean
+24|www.scielo.org.za|SciELO South Africa

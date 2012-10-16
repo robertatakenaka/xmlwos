@@ -47,6 +47,60 @@ class Application(tornado.web.Application):
                     prefix = line.split("|")
                     self.doi_prefix[prefix[0]] = prefix[1]
 
+        self.article_types = {}
+        
+        self.article_types['oa'] = 'research-article'
+        self.article_types['ab'] = 'abstract'
+        self.article_types['an'] = 'announcement'
+        self.article_types['co'] = 'article-commentary'
+        self.article_types['cr'] = 'case-report'
+        self.article_types['ed'] = 'editorial'
+        self.article_types['le'] = 'letter'
+        self.article_types['ra'] = 'review-article'
+        self.article_types['sc'] = 'rapid-communication'
+        self.article_types['nd'] = 'undefined'
+
+        #self.article_types['??'] = 'addendum'
+        #self.article_types['??'] = 'book-review'
+        #self.article_types['??'] = 'books-received'
+        #self.article_types['??'] = 'brief-report'
+        #self.article_types['??'] = 'calendar'
+        #self.article_types['??'] = 'collection'
+        #self.article_types['??'] = 'correction'
+        #self.article_types['??'] = 'discussion'
+        #self.article_types['??'] = 'dissertation'
+        #self.article_types['??'] = 'in-brief'
+        #self.article_types['??'] = 'introduction'
+        #self.article_types['??'] = 'meeting-report'
+        #self.article_types['??'] = 'news'
+        #self.article_types['??'] = 'obituary'
+        #self.article_types['??'] = 'oration'
+        #self.article_types['??'] = 'partial-retraction'
+        #self.article_types['??'] = 'product-review'
+        #self.article_types['??'] = 'reply'
+        #self.article_types['??'] = 'reprint'
+        #self.article_types['??'] = 'retraction'
+        #self.article_types['??'] = 'translation'
+
+        self.journal_subjects = {}
+        f_journal_subjects = open('_journal_subjects.txt', 'r')
+        s = f_journal_subjects.readlines()
+        for line in s:
+            parts = line.replace('\n','').split('|')
+            if len(parts) == 2:
+                self.journal_subjects[parts[0]] = parts[1].split('#')
+        f_journal_subjects.close()
+
+        self.scielonet = {}
+        f_scielonet = open('_red.txt', 'r')
+        s = f_scielonet.readlines()
+        for line in s:
+            parts = line.replace('\n','').split('|')
+            if len(parts) == 3:
+                if len(parts[1]) > 0:
+                    self.scielonet[parts[0]] = parts[1]
+        f_scielonet.close()
+
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             )
@@ -126,14 +180,15 @@ class ArticleHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @tornado.gen.engine
     def get(self):
+        self.is_xml = False
         def _on_response(response, error):
             if error:
                 raise tornado.web.HTTPError(500)
 
             if len(response) > 0:
                 if format == 'xml':
-                    shined_data = ShineData(response[0], doi_prefix=self.application.doi_prefix)
-
+                    shined_data = ShineData(response[0], doi_prefix=self.application.doi_prefix, article_types = self.application.article_types, journal_subjects = self.application.journal_subjects, scielonet = self.application.scielonet )
+                    self.is_xml = True
                     self.set_header('Content-Type', 'application/xml')
                     self.render('scielo.xml',
                         code=code,
@@ -144,9 +199,22 @@ class ArticleHandler(tornado.web.RequestHandler):
                     self.write(str(response[0]))
                     self.finish()
 
+
         code = self.get_argument('code')
         format = self.get_argument('format')
         self.db.articles.find({"code": code}, {"_id": 0}, limit=1, callback=_on_response)
+
+    def finish(self, chunk=None):
+        if self.is_xml == True:
+            try:
+                from lxml import etree
+                p = etree.XMLParser(remove_blank_text=True)
+                chunk = etree.tostring(etree.XML(chunk, parser = p))
+            except:
+                pass
+        tornado.web.RequestHandler.finish(self, chunk)
+
+
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()

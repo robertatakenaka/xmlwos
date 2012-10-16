@@ -1,6 +1,10 @@
 <article dtd-version="3.0"
    xmlns:xlink="http://www.w3.org/1999/xlink" 
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   article-type="{{ article['article_type'] }}" 
+   xml:lang="{{ article['original_language'] }}"
+
+   >
    {% set original_language = article['original_language'] %}
    <front>
         <journal-meta>
@@ -30,6 +34,14 @@
             <article-id pub-id-type="publisher-id">{{ article['article-id'] }}</article-id>
             {% if 'article-id-doi' in article %}
                 <article-id pub-id-type="doi">{{ article['article-id-doi'] }}</article-id>
+            {% end %}<!-- {{ article['teste'] }} -->
+            {% if 'journal-subjects' in article %}
+                <article-categories>
+                {% for subj in article['journal-subjects'] %}
+                    <subj-group><subject>{{ subj }}</subject></subj-group>
+                {% end %}
+                </article-categories>
+
             {% end %}
             <title-group>
                 {% for lang, title in article['group-title']['article-title'].items() %}
@@ -221,6 +233,9 @@
                             {% end %}
                             {% if 'series' in citation %}
                                 <series>{{ citation['series'] }}</series>
+                            {% end %}
+                            {% if 'publisher-name' in citation %}
+                                <publisher-name>{{ citation['publisher-name'] }}</publisher-name>
                             {% end %}
                             {% if 'publisher-loc' in citation %}
                                 <publisher-loc>{{ citation['publisher-loc'] }}</publisher-loc>
